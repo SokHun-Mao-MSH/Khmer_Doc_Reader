@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(resource) { return isSignedIn() && resource.data.ownerId == request.auth.uid; }
+    function incoming() { return request.resource.data; }
+    function isValidId(id) { return id is string && id.size() <= 64; }
+
+    // Validation for Folders
+    function isValidFolder(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100
+          && data.ownerId == request.auth.uid
+          && data.order is number;
+    }
+
+    // Validation for Lessons
+    function isValidLesson(data) {
+      return data.title is string && data.title.size() > 0 && data.title.size() <= 200
+          && data.content is string && data.content.size() <= 20000
+          && data.folderId is string
+          && data.ownerId == request.auth.uid
+          && data.order is number;
+    }
+
+    match /folders/{folderId} {
+      allow create: if isSignedIn() && isValidFolder(incoming());
+      allow update: if isOwner(resource) && isValidFolder(incoming());
+      allow delete: if isOwner(resource);
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow get: if isOwner(resource);
+    }
+
+    match /lessons/{lessonId} {
+      allow create: if isSignedIn() && isValidLesson(incoming())
+                   && exists(/databases/$(database)/documents/folders/$(incoming().folderId));
+      allow update: if isOwner(resource) && isValidLesson(incoming());
+      allow delete: if isOwner(resource);
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow get: if isOwner(resource);
+    }
+  }
+}

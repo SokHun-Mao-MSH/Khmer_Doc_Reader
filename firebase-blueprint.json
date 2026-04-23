@@ -1,0 +1,49 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" }
+      },
+      "required": ["email"]
+    },
+    "Folder": {
+      "title": "Folder",
+      "description": "A container for doc lessons (tabs)",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "order": { "type": "number" }
+      },
+      "required": ["name", "ownerId", "order"]
+    },
+    "Lesson": {
+      "title": "Lesson",
+      "description": "An individual doc lesson section",
+      "type": "object",
+      "properties": {
+        "folderId": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "order": { "type": "number" },
+        "ownerId": { "type": "string" }
+      },
+      "required": ["folderId", "title", "content", "order", "ownerId"]
+    }
+  },
+  "firestore": {
+    "folders": {
+      "schema": "Folder",
+      "description": "The 'Document tabs' in the sidebar"
+    },
+    "lessons": {
+      "schema": "Lesson",
+      "description": "The individual lessons/sections within a tab"
+    }
+  }
+}
